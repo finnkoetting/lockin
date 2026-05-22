@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -14,22 +15,28 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     const fd = new FormData(e.currentTarget);
+    const email = fd.get("email") as string;
+    const password = fd.get("password") as string;
+
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: fd.get("name"),
-        email: fd.get("email"),
-        password: fd.get("password"),
-      }),
+      body: JSON.stringify({ name: fd.get("name"), email, password }),
     });
     const data = await res.json();
-    setLoading(false);
     if (!res.ok) {
+      setLoading(false);
       setError(data.error);
       return;
     }
-    router.push("/login?registered=1");
+
+    const result = await signIn("credentials", { email, password, redirect: false });
+    setLoading(false);
+    if (result?.error) {
+      router.push("/login");
+      return;
+    }
+    router.push("/onboarding");
   }
 
   return (
