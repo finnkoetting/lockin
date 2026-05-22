@@ -4,13 +4,14 @@
   --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-dm-mono);
 
-  --color-bg: #0a0a0a;
-  --color-surface: #111111;
-  --color-border: #1f1f1f;
-  --color-fg: #f0f0f0;
-  --color-muted: #555555;
-  --color-success: #22c55e;
-  --color-danger: #ef4444;
+  --color-bg:      #F4F7F4;
+  --color-surface: #ECEEE8;
+  --color-border:  #D4D8D0;
+  --color-fg:      #1A2B1A;
+  --color-muted:   #7A8C7A;
+  --color-accent:  #3A7A3A;
+  --color-success: #3A7A3A;
+  --color-danger:  #C0392B;
 }
 
 body {
