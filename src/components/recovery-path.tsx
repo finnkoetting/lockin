@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { RECOVERY_TIMELINE, type HabitType } from "@/lib/habit-types";
 
 interface Props {
   habitType: HabitType;
   currentStreakHours: number;
+  defaultExpanded?: boolean;
+  /** If set, replaces the expand toggle with a link to this href */
+  moreHref?: string;
 }
 
-export function RecoveryPath({ habitType, currentStreakHours }: Props) {
-  const [expanded, setExpanded] = useState(false);
+export function RecoveryPath({ habitType, currentStreakHours, defaultExpanded = false, moreHref }: Props) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const events = RECOVERY_TIMELINE[habitType];
 
   const lastPassedIndex = events.reduce(
@@ -106,15 +110,24 @@ export function RecoveryPath({ habitType, currentStreakHours }: Props) {
         })}
       </div>
 
-      {/* Expand / collapse toggle */}
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        className="font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors mt-1"
-      >
-        {expanded
-          ? "Weniger anzeigen"
-          : `Alle ${events.length} Meilensteine anzeigen`}
-      </button>
+      {/* Expand toggle or link to full page */}
+      {moreHref ? (
+        <Link
+          href={moreHref}
+          className="font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors mt-1"
+        >
+          Alle {events.length} Meilensteine →
+        </Link>
+      ) : (
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          className="font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors mt-1"
+        >
+          {expanded
+            ? "Weniger anzeigen"
+            : `Alle ${events.length} Meilensteine anzeigen`}
+        </button>
+      )}
     </div>
   );
 }

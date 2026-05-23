@@ -5,8 +5,8 @@ import { HABIT_LABELS } from "@/lib/habit-types";
 import { computeStreak, getMilestones } from "@/lib/streak";
 import { SignOutButton } from "./sign-out-button";
 import { requireUser } from "@/lib/session";
-import { RecoveryPath } from "@/components/recovery-path";
 import { WelcomeScreen } from "@/components/welcome-screen";
+import { RecoveryPath } from "@/components/recovery-path";
 import { RelapseButton } from "@/components/relapse-button";
 import type { HabitType } from "@/lib/habit-types";
 import Link from "next/link";
@@ -45,7 +45,15 @@ export default async function DashboardPage() {
               : `${habits.length} Laster im Blick`}
           </p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-4">
+          <Link
+            href="/settings"
+            className="font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
+          >
+            Einstellungen
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
 
       {/* One section per habit */}
@@ -57,6 +65,8 @@ export default async function DashboardPage() {
         const currentStreakHours = streak?.currentStreakHours ?? 0;
         const remainderHours =
           streak ? streak.currentStreakHours - streak.currentStreakDays * 24 : 0;
+        const remainderMins =
+          streak ? streak.currentStreakMinutes - streak.currentStreakHours * 60 : 0;
         const relapseCount = habit.relapses?.length ?? 0;
 
         // Progress toward next milestone (0–1)
@@ -103,10 +113,8 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* Two-column: streak card | recovery path */}
-            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-5 items-start">
-
-              {/* Left: streak card */}
+            {/* Two-column: streak card | recovery preview */}
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-5 items-start">
               <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-6">
 
                 {/* Streak number */}
@@ -145,17 +153,19 @@ export default async function DashboardPage() {
                         {streak.currentStreakDays}
                         <span className="text-2xl text-[var(--color-muted)] ml-3">Tage</span>
                       </p>
-                      {remainderHours > 0 && (
-                        <p className="font-mono text-xs text-[var(--color-border)] mt-2">
-                          + {remainderHours}h
-                        </p>
-                      )}
+                      <p className="font-mono text-xs text-[var(--color-border)] mt-2">
+                        + {remainderHours}h {remainderMins}min
+                      </p>
                     </div>
                   ) : (
-                    <p className="font-mono text-5xl font-medium text-[var(--color-fg)] leading-none">
-                      {streak.currentStreakHours}
-                      <span className="text-xl text-[var(--color-muted)] ml-2">Stunden</span>
-                    </p>
+                    <div>
+                      <p className="font-mono text-5xl font-medium text-[var(--color-fg)] leading-none">
+                        {streak.currentStreakHours}
+                        <span className="text-xl text-[var(--color-muted)] ml-2">h</span>
+                        <span className="text-3xl font-medium ml-3">{remainderMins}</span>
+                        <span className="text-xl text-[var(--color-muted)] ml-2">min</span>
+                      </p>
+                    </div>
                   )}
                 </div>
 
@@ -163,48 +173,42 @@ export default async function DashboardPage() {
                 {streak && (
                   <div className="flex flex-col gap-5 pt-5 border-t border-[var(--color-border)]">
 
-                    {/* Stats row */}
-                    <div className="flex gap-8">
-                      {streak.totalCleanDays > 0 &&
-                        streak.totalCleanDays !== streak.currentStreakDays && (
-                          <div>
-                            <p className="font-mono text-xs text-[var(--color-muted)] mb-1">Gesamt clean</p>
-                            <p className="font-mono text-lg text-[var(--color-fg)]">
-                              {streak.totalCleanDays}{" "}
-                              <span className="text-sm text-[var(--color-muted)]">Tage</span>
-                            </p>
-                          </div>
-                        )}
-                      {streak.savedAmount != null && streak.savedAmount > 0 && (
+                    {/* Gespart — link to savings page */}
+                    {streak.savedAmount != null && streak.savedAmount > 0 && (
+                      <Link href="/savings" className="group flex items-center justify-between">
                         <div>
                           <p className="font-mono text-xs text-[var(--color-muted)] mb-1">Gespart</p>
                           <p className="font-mono text-lg text-[var(--color-accent)]">
                             €{streak.savedAmount.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
                           </p>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Next milestone with progress bar */}
-                    {nextMilestone && (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                          <p className="font-mono text-sm text-[var(--color-fg)]">
-                            {nextMilestone.label}
-                          </p>
-                          <p className="font-mono text-xs text-[var(--color-muted)]">
-                            noch {nextMilestone.daysUntil}{" "}
-                            {nextMilestone.daysUntil === 1 ? "Tag" : "Tage"}
-                          </p>
-                        </div>
-                        <div className="h-px w-full bg-[var(--color-border)]">
-                          <div
-                            className="h-full bg-[var(--color-accent)] transition-all duration-700"
-                            style={{ width: `${milestoneProgress * 100}%` }}
-                          />
-                        </div>
-                      </div>
+                        <span className="font-mono text-xs text-[var(--color-border)] group-hover:text-[var(--color-muted)] transition-colors">→</span>
+                      </Link>
                     )}
+
+                    {/* Next milestone with progress bar + smart unit */}
+                    {nextMilestone && (() => {
+                      const hoursUntil = nextMilestone.days * 24 - streak.currentStreakHours;
+                      const label = hoursUntil <= 23
+                        ? `noch ${hoursUntil}h`
+                        : `noch ${nextMilestone.daysUntil} ${nextMilestone.daysUntil === 1 ? "Tag" : "Tage"}`;
+                      return (
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <p className="font-mono text-sm text-[var(--color-fg)]">
+                              {nextMilestone.label}
+                            </p>
+                            <p className="font-mono text-xs text-[var(--color-muted)]">{label}</p>
+                          </div>
+                          <div className="h-px w-full bg-[var(--color-border)]">
+                            <div
+                              className="h-full bg-[var(--color-accent)] transition-all duration-700"
+                              style={{ width: `${milestoneProgress * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {/* Reached milestone badges */}
                     {reachedMilestones.length > 0 && (
@@ -235,7 +239,7 @@ export default async function DashboardPage() {
                 )}
               </div>
 
-              {/* Right: recovery path */}
+              {/* Right: recovery path preview */}
               <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6">
                 <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-5">
                   Dein Weg
@@ -243,6 +247,7 @@ export default async function DashboardPage() {
                 <RecoveryPath
                   habitType={habit.type as HabitType}
                   currentStreakHours={currentStreakHours}
+                  moreHref={`/path${habits.length > 1 ? `?type=${habit.type}` : ""}`}
                 />
               </div>
 

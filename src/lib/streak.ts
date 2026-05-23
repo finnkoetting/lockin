@@ -3,6 +3,7 @@ import type { IHabit } from "@/models/Habit";
 export interface StreakData {
   currentStreakDays: number;
   currentStreakHours: number;
+  currentStreakMinutes: number;
   totalCleanDays: number;
   savedAmount: number | null;
   lastRelapseDate: Date | null;
@@ -45,6 +46,7 @@ export function computeStreak(habit: IHabit | null): StreakData | null {
   const currentStreakStart = lastRelapse ? new Date(lastRelapse.date) : startDate;
 
   const currentStreakMs = now.getTime() - currentStreakStart.getTime();
+  const currentStreakMinutes = Math.floor(currentStreakMs / (1000 * 60));
   const currentStreakHours = Math.floor(currentStreakMs / (1000 * 60 * 60));
   const currentStreakDays = Math.floor(currentStreakMs / (1000 * 60 * 60 * 24));
 
@@ -63,6 +65,7 @@ export function computeStreak(habit: IHabit | null): StreakData | null {
   return {
     currentStreakDays,
     currentStreakHours,
+    currentStreakMinutes,
     totalCleanDays,
     savedAmount,
     lastRelapseDate: lastRelapse ? new Date(lastRelapse.date) : null,
