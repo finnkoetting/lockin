@@ -31,6 +31,74 @@ export interface HabitMeta {
   costHint?: string;
 }
 
+/** Selectable first-person statements shown in the "Warum" step */
+export const HABIT_THESES: Record<HabitType, string[]> = {
+  smoking: [
+    "Ich will nicht mehr von einer Zigarette abhängig sein.",
+    "Meine Lunge soll sich erholen.",
+    "Ich spare jeden Monat über 100 €.",
+    "Der Geruch nervt mich selbst.",
+    "Ich will länger leben.",
+    "Ich will meinem Körper endlich etwas Gutes tun.",
+  ],
+  weed: [
+    "Ich will wieder klar denken können.",
+    "Meine Motivation ist am Boden.",
+    "Ich vergrabe Probleme statt sie zu lösen.",
+    "Ich verliere zu viel Zeit.",
+    "Ich will nicht mehr high sein müssen, um entspannt zu sein.",
+    "Ich will wieder echte Gefühle spüren.",
+  ],
+  alcohol: [
+    "Ich will morgens ohne Kopfschmerzen aufwachen.",
+    "Ich sage Dinge, die ich nicht meine.",
+    "Ich verliere die Kontrolle über mich.",
+    "Ich verstecke es vor anderen.",
+    "Ich will present sein — für mich und andere.",
+    "Mein Körper hat genug.",
+  ],
+  doomscrolling: [
+    "Ich verschlafe mein Leben auf dem Sofa.",
+    "Meine Konzentration ist weg.",
+    "Ich schlafe schlecht, weil ich zu spät aufhöre.",
+    "Ich vergleiche mich ständig mit anderen.",
+    "Ich will wieder lesen, denken, schaffen.",
+    "Ich habe keine Energie mehr für echte Dinge.",
+  ],
+  gaming: [
+    "Ich vernachlässige Menschen, die mir wichtig sind.",
+    "Ich spiele, um Problemen auszuweichen.",
+    "Ich habe echte Ziele, die ich nicht anpacke.",
+    "Ich fühle mich danach schlechter als vorher.",
+    "Ich schlafe zu wenig.",
+    "Ich gebe zu viel Geld aus.",
+  ],
+  porn: [
+    "Meine Beziehung leidet darunter.",
+    "Es ist zur Gewohnheit geworden, nicht zur Entscheidung.",
+    "Ich schäme mich danach.",
+    "Ich will wieder echte Intimität spüren.",
+    "Es zerstört meine Konzentration.",
+    "Ich habe unrealistische Erwartungen entwickelt.",
+  ],
+  junk_food: [
+    "Ich esse aus Stress, nicht aus Hunger.",
+    "Ich will mehr Energie haben.",
+    "Ich will meinen Körper besser behandeln.",
+    "Ich greife automatisch zum Falschen.",
+    "Ich will mich morgens gut fühlen.",
+    "Mein Körper zeigt mir, dass es nicht mehr geht.",
+  ],
+  shopping: [
+    "Ich kaufe, um mich besser zu fühlen — nicht weil ich es brauche.",
+    "Ich lebe über meinen Verhältnissen.",
+    "Der Kauf fühlt sich gut an — danach nicht mehr.",
+    "Ich verstecke Ausgaben vor anderen.",
+    "Ich will Kontrolle über mein Geld zurück.",
+    "Ich suche in Dingen, was ich in mir finden müsste.",
+  ],
+};
+
 export const HABIT_META: Record<HabitType, HabitMeta> = {
   smoking: {
     whyPrompt:

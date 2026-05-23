@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   HABIT_LABELS,
   HABIT_META,
+  HABIT_THESES,
   HABIT_TYPES,
   type HabitType,
 } from "@/lib/habit-types";
@@ -18,18 +19,30 @@ export default function OnboardingPage() {
   const [step, setStep] = useState<Step>("laster");
   const [habitTypes, setHabitTypes] = useState<HabitType[]>([]);
   const [whyIndex, setWhyIndex] = useState(0);
-  const [whys, setWhys] = useState<Partial<Record<HabitType, string>>>({});
+  // Selected theses (multi) + optional custom text, per habit type
+  const [selectedTheses, setSelectedTheses] = useState<Partial<Record<HabitType, string[]>>>({});
+  const [customWhys, setCustomWhys] = useState<Partial<Record<HabitType, string>>>({});
   const [startDate, setStartDate] = useState(
     new Date().toISOString().split("T")[0]
   );
   const [costs, setCosts] = useState<Partial<Record<HabitType, string>>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showMultiModal, setShowMultiModal] = useState(false);
+  const [multiModalSeen, setMultiModalSeen] = useState(false);
 
   function toggleHabit(type: HabitType) {
-    setHabitTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
+    setHabitTypes((prev) => {
+      const next = prev.includes(type)
+        ? prev.filter((t) => t !== type)
+        : [...prev, type];
+      // Show modal exactly once when crossing from 1 → 2
+      if (next.length === 2 && !multiModalSeen) {
+        setShowMultiModal(true);
+        setMultiModalSeen(true);
+      }
+      return next;
+    });
   }
 
   function goToWhy() {
@@ -37,9 +50,32 @@ export default function OnboardingPage() {
     setStep("warum");
   }
 
+  function toggleThesis(type: HabitType, thesis: string) {
+    setSelectedTheses((prev) => {
+      const current = prev[type] ?? [];
+      return {
+        ...prev,
+        [type]: current.includes(thesis)
+          ? current.filter((t) => t !== thesis)
+          : [...current, thesis],
+      };
+    });
+  }
+
+  function currentWhyValid(type: HabitType) {
+    const theses = selectedTheses[type] ?? [];
+    const custom = customWhys[type] ?? "";
+    return theses.length > 0 || custom.trim().length > 0;
+  }
+
+  function buildWhy(type: HabitType): string {
+    const theses = selectedTheses[type] ?? [];
+    const custom = customWhys[type]?.trim() ?? "";
+    return [...theses, ...(custom ? [custom] : [])].join("\n");
+  }
+
   function nextWhy() {
-    const currentWhy = whys[habitTypes[whyIndex]] ?? "";
-    if (!currentWhy.trim()) return;
+    if (!currentWhyValid(habitTypes[whyIndex])) return;
     if (whyIndex < habitTypes.length - 1) {
       setWhyIndex((i) => i + 1);
     } else {
@@ -63,7 +99,7 @@ export default function OnboardingPage() {
 
     const habits = habitTypes.map((type) => ({
       type,
-      why: whys[type]?.trim() ?? "",
+      why: buildWhy(type),
       costPerUnit: costs[type] ? Number(costs[type]) : undefined,
     }));
 
@@ -87,7 +123,9 @@ export default function OnboardingPage() {
   const stepIndex = STEPS.indexOf(step);
   const currentType = habitTypes[whyIndex];
   const currentMeta = currentType ? HABIT_META[currentType] : null;
-  const currentWhy = currentType ? (whys[currentType] ?? "") : "";
+  const currentTheses = currentType ? (selectedTheses[currentType] ?? []) : [];
+  const currentCustom = currentType ? (customWhys[currentType] ?? "") : "";
+  const currentValid = currentType ? currentWhyValid(currentType) : false;
 
   return (
     <main className="flex flex-1 items-center justify-center px-4 py-16">
@@ -132,14 +170,6 @@ export default function OnboardingPage() {
               ))}
             </div>
 
-            {/* Disclaimer when >1 selected */}
-            {habitTypes.length > 1 && (
-              <p className="mt-5 font-sans text-xs text-[var(--color-muted)] leading-relaxed border-l-2 border-[var(--color-border)] pl-3">
-                Jedes Laster bekommt seinen eigenen Streak und sein eigenes
-                Warum. Das ist mehr Arbeit — und genau das macht es ehrlicher.
-              </p>
-            )}
-
             <button
               disabled={habitTypes.length === 0}
               onClick={goToWhy}
@@ -164,22 +194,48 @@ export default function OnboardingPage() {
               )}
             </div>
 
-            <p className="font-sans text-xs text-[var(--color-muted)] mb-6 leading-relaxed">
-              {currentMeta.whyPrompt}
+            <p className="font-sans text-xs text-[var(--color-muted)] mb-5 leading-relaxed">
+              Was trifft auf dich zu?
             </p>
 
-            <textarea
-              value={currentWhy}
-              onChange={(e) =>
-                setWhys((prev) => ({
-                  ...prev,
-                  [currentType]: e.target.value,
-                }))
-              }
-              rows={6}
-              placeholder="Schreib für dich selbst. Im Craving-Moment siehst du genau diesen Text."
-              className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-3 py-2.5 text-sm font-sans outline-none focus:border-[var(--color-fg)] transition-colors resize-none placeholder:text-[var(--color-border)]"
-            />
+            {/* Thesis chips */}
+            <div className="flex flex-col gap-2 mb-6">
+              {HABIT_THESES[currentType].map((thesis) => {
+                const selected = currentTheses.includes(thesis);
+                return (
+                  <button
+                    key={thesis}
+                    onClick={() => toggleThesis(currentType, thesis)}
+                    className={`text-left px-4 py-3 rounded border font-sans text-sm leading-snug transition-colors ${
+                      selected
+                        ? "border-[var(--color-fg)] bg-[var(--color-surface)] text-[var(--color-fg)]"
+                        : "border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-muted)]"
+                    }`}
+                  >
+                    {thesis}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Optional custom text */}
+            <div className="flex flex-col gap-1.5">
+              <label className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+                Eigene Worte — optional
+              </label>
+              <textarea
+                value={currentCustom}
+                onChange={(e) =>
+                  setCustomWhys((prev) => ({
+                    ...prev,
+                    [currentType]: e.target.value,
+                  }))
+                }
+                rows={3}
+                placeholder="Was fehlt noch? Im Craving-Moment siehst du genau das."
+                className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-3 py-2.5 text-sm font-sans outline-none focus:border-[var(--color-fg)] transition-colors resize-none placeholder:text-[var(--color-border)]"
+              />
+            </div>
 
             <div className="flex gap-2 mt-4">
               <button
@@ -189,7 +245,7 @@ export default function OnboardingPage() {
                 Zurück
               </button>
               <button
-                disabled={!currentWhy.trim()}
+                disabled={!currentValid}
                 onClick={nextWhy}
                 className="flex-1 bg-[var(--color-fg)] text-[var(--color-bg)] font-mono text-sm py-2.5 rounded hover:opacity-90 transition-opacity disabled:opacity-30"
               >
@@ -280,6 +336,34 @@ export default function OnboardingPage() {
           </div>
         )}
       </div>
+
+      {/* ── Multi-habit disclaimer modal ── */}
+      {showMultiModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-bg)]/80 backdrop-blur-sm px-6"
+          onClick={() => setShowMultiModal(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <blockquote className="border-l-2 border-[var(--color-accent)] pl-4 mb-6">
+              <p className="font-sans text-sm text-[var(--color-fg)] leading-relaxed italic">
+                „Wer zu viel auf einmal will, riskiert, alles auf einmal zu verlieren. Schritt für Schritt ist kein Zeichen von Schwäche — es ist die einzige Methode, die wirklich funktioniert."
+              </p>
+            </blockquote>
+            <p className="font-sans text-xs text-[var(--color-muted)] leading-relaxed mb-6">
+              Du hast mehrere Laster gewählt. Das ist ehrlich. Jedes bekommt seinen eigenen Streak und sein eigenes Warum — aber vergiss nicht: Du musst nicht alles auf einmal schaffen.
+            </p>
+            <button
+              onClick={() => setShowMultiModal(false)}
+              className="w-full bg-[var(--color-fg)] text-[var(--color-bg)] font-mono text-sm py-2.5 rounded hover:opacity-90 transition-opacity"
+            >
+              Verstanden
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
