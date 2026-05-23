@@ -56,10 +56,13 @@ export function computeStreak(habit: IHabit | null): StreakData | null {
   const totalDays = Math.floor(totalMs / (1000 * 60 * 60 * 24));
   const totalCleanDays = Math.max(0, totalDays - relapses.length);
 
-  // Saved amount: currentStreakDays * costPerUnit * avg uses per day (we treat costPerUnit as cost per day)
+  // savedAmount = days × dailyAmount × costPerUnit (units/day × €/unit = €/day × days)
+  // Falls nur costPerUnit gesetzt (z.B. Gaming als Tageskosten): dailyAmount=1 implicit
   const savedAmount =
-    habit.costPerUnit != null
-      ? parseFloat((currentStreakDays * habit.costPerUnit).toFixed(2))
+    habit.costPerUnit != null && habit.costPerUnit > 0
+      ? parseFloat(
+          (currentStreakDays * (habit.dailyAmount ?? 1) * habit.costPerUnit).toFixed(2)
+        )
       : null;
 
   return {

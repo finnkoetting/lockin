@@ -45,6 +45,7 @@ export function SettingsForm({ habits }: Props) {
   // Delete account state
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm">("idle");
   const [deleting, setDeleting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   function update(type: string, field: string, value: string) {
     setHabitStates((prev) => ({
@@ -55,19 +56,29 @@ export function SettingsForm({ habits }: Props) {
 
   async function saveHabit(type: string) {
     setHabitStates((prev) => ({ ...prev, [type]: { ...prev[type], saving: true } }));
+    setErrors((prev) => ({ ...prev, [type]: "" }));
     const s = habitStates[type];
-    await fetch("/api/habits/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type,
-        startDate: new Date(s.startDate).toISOString(),
-        costPerUnit: s.costPerUnit === "" ? null : s.costPerUnit,
-        dailyAmount: s.dailyAmount === "" ? null : s.dailyAmount,
-      }),
-    });
-    setHabitStates((prev) => ({ ...prev, [type]: { ...prev[type], saving: false, saved: true } }));
-    router.refresh();
+    try {
+      const res = await fetch("/api/habits/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          startDate: new Date(s.startDate).toISOString(),
+          costPerUnit: s.costPerUnit === "" ? null : Number(s.costPerUnit),
+          dailyAmount: s.dailyAmount === "" ? null : Number(s.dailyAmount),
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? `Fehler ${res.status}`);
+      }
+      setHabitStates((prev) => ({ ...prev, [type]: { ...prev[type], saving: false, saved: true } }));
+      router.refresh();
+    } catch (e) {
+      setErrors((prev) => ({ ...prev, [type]: (e as Error).message }));
+      setHabitStates((prev) => ({ ...prev, [type]: { ...prev[type], saving: false } }));
+    }
   }
 
   async function deleteAccount() {
@@ -151,6 +162,11 @@ export function SettingsForm({ habits }: Props) {
               >
                 {s.saving ? "Speichern…" : s.saved ? "Gespeichert ✓" : "Speichern"}
               </button>
+              {errors[habit.type] && (
+                <p className="font-mono text-xs text-[var(--color-danger)]">
+                  Fehler: {errors[habit.type]}
+                </p>
+              )}
             </div>
           </div>
         );

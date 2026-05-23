@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/session";
 import { WelcomeScreen } from "@/components/welcome-screen";
 import { RecoveryPath } from "@/components/recovery-path";
 import { RelapseButton } from "@/components/relapse-button";
+import { SavingsTicker } from "@/components/savings-ticker";
 import type { HabitType } from "@/lib/habit-types";
 import Link from "next/link";
 
@@ -68,6 +69,13 @@ export default async function DashboardPage() {
         const remainderMins =
           streak ? streak.currentStreakMinutes - streak.currentStreakHours * 60 : 0;
         const relapseCount = habit.relapses?.length ?? 0;
+
+        // Savings — precise using minutes
+        const dailySavings = (habit.costPerUnit ?? 0) > 0
+          ? (habit.dailyAmount ?? 1) * habit.costPerUnit!
+          : 0;
+        const preciseStreakDays = (streak?.currentStreakMinutes ?? 0) / (60 * 24);
+        const preciseSaved = dailySavings * preciseStreakDays;
 
         // Progress toward next milestone (0–1)
         const milestoneProgress =
@@ -173,17 +181,17 @@ export default async function DashboardPage() {
                 {streak && (
                   <div className="flex flex-col gap-5 pt-5 border-t border-[var(--color-border)]">
 
-                    {/* Gespart — link to savings page */}
-                    {streak.savedAmount != null && streak.savedAmount > 0 && (
-                      <Link href="/savings" className="group flex items-center justify-between">
-                        <div>
-                          <p className="font-mono text-xs text-[var(--color-muted)] mb-1">Gespart</p>
-                          <p className="font-mono text-lg text-[var(--color-accent)]">
-                            €{streak.savedAmount.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
-                          </p>
+                    {/* Savings ticker */}
+                    {dailySavings > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                          <p className="font-mono text-xs text-[var(--color-muted)]">Gespart</p>
+                          <Link href="/savings" className="font-mono text-xs text-[var(--color-border)] hover:text-[var(--color-muted)] transition-colors">
+                            Details →
+                          </Link>
                         </div>
-                        <span className="font-mono text-xs text-[var(--color-border)] group-hover:text-[var(--color-muted)] transition-colors">→</span>
-                      </Link>
+                        <SavingsTicker initialAmount={preciseSaved} dailySavings={dailySavings} compact />
+                      </div>
                     )}
 
                     {/* Next milestone with progress bar + smart unit */}

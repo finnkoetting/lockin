@@ -5,6 +5,7 @@ import { Habit } from "@/models/Habit";
 import { HABIT_LABELS, HABIT_META, type HabitType } from "@/lib/habit-types";
 import { computeStreak } from "@/lib/streak";
 import { requireUser } from "@/lib/session";
+import { SavingsTicker } from "@/components/savings-ticker";
 
 interface Equivalent {
   label: string;
@@ -97,12 +98,16 @@ export default async function SavingsPage() {
         const dailyAmount = habit.dailyAmount != null
           ? (isPorn ? habit.dailyAmount / 7 : habit.dailyAmount)
           : null;
-        const dailyCost = habit.costPerUnit ?? null;
+        // dailySavings = dailyAmount × costPerUnit (units/day × €/unit)
+        // If no dailyAmount but costPerUnit set (e.g. gaming): treat as direct daily cost
+        const dailySavings = habit.costPerUnit != null && habit.costPerUnit > 0
+          ? (dailyAmount != null ? dailyAmount * habit.costPerUnit : habit.costPerUnit)
+          : null;
 
         const unitsAvoided = dailyAmount != null ? dailyAmount * preciseStreakDays : null;
-        const moneySaved = dailyCost != null ? dailyCost * preciseStreakDays : null;
+        const moneySaved = dailySavings != null ? dailySavings * preciseStreakDays : null;
 
-        const projections = moneySaved != null
+        const projections = dailySavings != null
           ? [
               { label: "1 Woche", days: 7 },
               { label: "1 Monat", days: 30 },
@@ -110,7 +115,7 @@ export default async function SavingsPage() {
               { label: "1 Jahr", days: 365 },
             ].map(({ label, days }) => ({
               label,
-              amount: dailyCost! * (preciseStreakDays + days),
+              amount: dailySavings * (preciseStreakDays + days),
             }))
           : null;
 
@@ -139,19 +144,12 @@ export default async function SavingsPage() {
               </div>
             )}
 
-            {/* Money saved */}
-            {moneySaved != null && moneySaved > 0 && (
-              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-1">
-                <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-3">
-                  Gespart
-                </p>
-                <p className="font-mono text-6xl font-medium text-[var(--color-accent)] leading-none">
-                  €{formatEur(moneySaved)}
-                </p>
-                <p className="font-sans text-xs text-[var(--color-muted)] mt-2">
-                  {formatEur(dailyCost!)} € / Tag
-                </p>
-              </div>
+            {/* Live savings ticker — show whenever daily savings rate is set */}
+            {dailySavings != null && dailySavings > 0 && (
+              <SavingsTicker
+                initialAmount={moneySaved ?? 0}
+                dailySavings={dailySavings}
+              />
             )}
 
             {/* Equivalents */}

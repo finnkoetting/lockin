@@ -264,8 +264,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   smoking: {
     whyPrompt:
       "Was kostet dich das Rauchen — körperlich, im Kopf, im Geldbeutel? Was wird konkret besser, wenn du aufhörst?",
-    costLabel: "Tageskosten Zigaretten (€)",
-    costHint: "z.B. 10 Zig. × 0,40 € = 4,00",
+    costLabel: "Preis pro Zigarette (€)",
+    costHint: "z.B. 0.40",
     amountLabel: "Zigaretten pro Tag",
     amountUnit: "Zigaretten",
     amountHint: "z.B. 10",
@@ -274,8 +274,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   weed: {
     whyPrompt:
       "Wann greifst du zum Joint — aus Gewohnheit, Stress, Langeweile? Was betäubst du damit, und was willst du stattdessen spüren?",
-    costLabel: "Tageskosten Gras (€)",
-    costHint: "z.B. 1 Joint × 2,00 € = 2,00",
+    costLabel: "Preis pro Gramm (€)",
+    costHint: "z.B. 10.00",
     amountLabel: "Gramm pro Tag",
     amountUnit: "g",
     amountHint: "z.B. 0.5",
@@ -284,8 +284,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   alcohol: {
     whyPrompt:
       "Wann trinkst du, obwohl ein Teil von dir es nicht will? Was gibst du auf — körperlich, sozial, mental — solange du trinkst?",
-    costLabel: "Tageskosten Alkohol (€)",
-    costHint: "z.B. 2 Drinks × 4,00 € = 8,00",
+    costLabel: "Preis pro Drink (€)",
+    costHint: "z.B. 4.00",
     amountLabel: "Drinks pro Tag",
     amountUnit: "Drinks",
     amountHint: "z.B. 2",
@@ -303,7 +303,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
     whyPrompt:
       "Wann hört Gaming auf, Spaß zu sein, und wird Flucht? Was läuft im echten Leben gerade schief, das du damit übertönst?",
     costLabel: "Tageskosten Gaming (€)",
-    costHint: "z.B. Abo + Käufe ÷ 30 Tage",
+    costHint: "z.B. 3.00",
     amountLabel: "Stunden Zocken pro Tag",
     amountUnit: "Stunden",
     amountHint: "z.B. 4",
@@ -320,8 +320,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   junk_food: {
     whyPrompt:
       "Wann greifst du zu Junk Food — Hunger, Stress, Boredom, Belohnung? Was isst du stattdessen, und wie willst du dich nach dem Essen fühlen?",
-    costLabel: "Tageskosten Junk Food (€)",
-    costHint: "z.B. 1 Mahlzeit × 8,00 € = 8,00",
+    costLabel: "Preis pro Mahlzeit (€)",
+    costHint: "z.B. 8.00",
     amountLabel: "Mahlzeiten pro Tag",
     amountUnit: "Mahlzeiten",
     amountHint: "z.B. 1",
@@ -330,8 +330,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   shopping: {
     whyPrompt:
       "Was kaufst du, das du wirklich nicht brauchst? Was kaufst du eigentlich — ein Gefühl, eine Ablenkung, Kontrolle? Was bleibt nach dem Kauf?",
-    costLabel: "Ø Tagesausgaben Shopping (€)",
-    costHint: "z.B. monatlich 300 € ÷ 30 = 10,00",
+    costLabel: "Ø Preis pro Kauf (€)",
+    costHint: "z.B. 30.00",
     amountLabel: "Käufe pro Tag",
     amountUnit: "Käufe",
     amountHint: "z.B. 1",

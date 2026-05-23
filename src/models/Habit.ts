@@ -38,4 +38,8 @@ const HabitSchema = new Schema<IHabit>(
 
 HabitSchema.index({ userId: 1 });
 
+// In dev: always re-compile so schema changes take effect without server restart
+if (process.env.NODE_ENV !== "production" && mongoose.models.Habit) {
+  delete mongoose.models.Habit;
+}
 export const Habit = mongoose.models.Habit ?? mongoose.model<IHabit>("Habit", HabitSchema);
