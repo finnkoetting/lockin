@@ -7,6 +7,7 @@ import { SignOutButton } from "./sign-out-button";
 import { requireUser } from "@/lib/session";
 import { RecoveryPath } from "@/components/recovery-path";
 import { WelcomeScreen } from "@/components/welcome-screen";
+import { RelapseButton } from "@/components/relapse-button";
 import type { HabitType } from "@/lib/habit-types";
 import Link from "next/link";
 
@@ -51,18 +52,21 @@ export default async function DashboardPage() {
           <div key={habit._id.toString()} className="flex flex-col gap-6">
 
             {/* Habit label */}
-            <div>
-              <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-1">
-                {HABIT_LABELS[habit.type as HabitType]}
-              </p>
-              <p className="font-mono text-xs text-[var(--color-muted)]">
-                Seit{" "}
-                {new Date(habit.startDate).toLocaleDateString("de-DE", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </p>
+            <div className="flex items-end justify-between">
+              <div>
+                <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-1">
+                  {HABIT_LABELS[habit.type as HabitType]}
+                </p>
+                <p className="font-mono text-xs text-[var(--color-muted)]">
+                  Seit{" "}
+                  {new Date(habit.startDate).toLocaleDateString("de-DE", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+              <RelapseButton habitType={habit.type as HabitType} />
             </div>
 
             {/* Landscape row: streak card left, recovery path right */}
