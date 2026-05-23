@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/session";
 import { RecoveryPath } from "@/components/recovery-path";
 import { WelcomeScreen } from "@/components/welcome-screen";
 import type { HabitType } from "@/lib/habit-types";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const userId = await requireUser();
@@ -21,6 +22,14 @@ export default async function DashboardPage() {
   return (
     <main className="flex flex-1 flex-col px-8 py-10 max-w-6xl mx-auto w-full gap-16">
       <WelcomeScreen habitTypes={habitTypes} userId={userId} />
+
+      {/* SOS Button — fixed bottom center */}
+      <Link
+        href="/craving"
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-[var(--color-danger)] text-white font-mono text-sm px-8 py-3 rounded-full shadow-lg hover:opacity-90 transition-opacity tracking-widest uppercase"
+      >
+        SOS
+      </Link>
 
       {/* Header */}
       <div className="flex items-center justify-between">

@@ -30,6 +30,32 @@ export const LOGIN_QUOTES: Quote[] = [
   },
 ];
 
+/** Für Craving-Momente — direkt, ehrlich, biologisch */
+export const CRAVING_QUOTES: Quote[] = [
+  {
+    text: "Ein Craving ist kein Befehl. Es ist ein Schmerzsignal, das du überleben kannst.",
+  },
+  {
+    text: "Das Verlangen kommt in Wellen. Wellen brechen immer.",
+  },
+  {
+    text: "Cravings dauern im Schnitt 15–20 Minuten. Das weißt du jetzt.",
+    source: "Alan Marlatt, Urge Surfing",
+  },
+  {
+    text: "Dein Gehirn lügt dir gerade. Dopamin will seinen Fix. Du bist nicht dein Dopamin.",
+  },
+  {
+    text: "Warten ist keine Schwäche. Warten ist die Strategie.",
+  },
+  {
+    text: "Du musst jetzt nicht stark sein. Du musst nur fünf Minuten überleben.",
+  },
+  {
+    text: "Das Verlangen fühlt sich an wie Notfall. Es ist keiner.",
+  },
+];
+
 /** Für Register — Entscheidung, Anfang, Warum */
 export const REGISTER_QUOTES: Quote[] = [
   {
