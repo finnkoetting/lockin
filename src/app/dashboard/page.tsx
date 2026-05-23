@@ -246,6 +246,9 @@ export default async function DashboardPage() {
 
             </div>
 
+            {/* Lebenszeit + Milestones Grid */}
+            <div className={`grid gap-5 ${streak && lifeMinutesTotal >= 1 && streak && milestones.length > 0 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1"}`}>
+
             {/* Lebenszeit Card */}
             {streak && lifeMinutesTotal >= 1 && (() => {
               const totalMins = Math.floor(lifeMinutesTotal);
@@ -351,6 +354,8 @@ export default async function DashboardPage() {
                 )}
               </div>
             )}
+
+            </div>{/* end Lebenszeit + Milestones Grid */}
 
           </div>
         );
