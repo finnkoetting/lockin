@@ -1,18 +1,17 @@
-import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { Habit } from "@/models/Habit";
 import { HABIT_LABELS } from "@/lib/habit-types";
 import { computeStreak, getMilestones } from "@/lib/streak";
 import { SignOutButton } from "./sign-out-button";
+import { requireUser } from "@/lib/session";
 
 export default async function DashboardPage() {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  const userId = await requireUser();
 
   await connectDB();
-  const habits = await Habit.find({ userId: session.user.id }).lean();
-  if (!habits || habits.length === 0) redirect("/onboarding");
+  const habits = await Habit.find({ userId }).lean();
+  if (!habits.length) redirect("/onboarding");
 
   return (
     <main className="flex flex-1 justify-center px-4 py-12">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import { Habit, HABIT_TYPES } from "@/models/Habit";
+import { User } from "@/models/User";
 
 interface HabitInput {
   type: string;
@@ -13,6 +14,12 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Nicht eingeloggt." }, { status: 401 });
+  }
+
+  await connectDB();
+  const userExists = await User.exists({ _id: session.user.id });
+  if (!userExists) {
+    return NextResponse.json({ error: "Session ungültig." }, { status: 401 });
   }
 
   const { startDate, habits } = await req.json() as {
@@ -35,8 +42,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Warum fehlt für ${h.type}.` }, { status: 400 });
     }
   }
-
-  await connectDB();
 
   const userId = session.user.id;
   const parsedDate = new Date(startDate);
@@ -69,6 +74,11 @@ export async function GET() {
   }
 
   await connectDB();
+  const userExists = await User.exists({ _id: session.user.id });
+  if (!userExists) {
+    return NextResponse.json({ error: "Session ungültig." }, { status: 401 });
+  }
+
   const habits = await Habit.find({ userId: session.user.id }).lean();
   return NextResponse.json(habits);
 }
