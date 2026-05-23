@@ -50,6 +50,12 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <Link
+            href="/triggers"
+            className="font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
+          >
+            Auslöser
+          </Link>
+          <Link
             href="/settings"
             className="font-mono text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
           >
@@ -107,32 +113,12 @@ export default async function DashboardPage() {
         return (
           <div key={habit._id.toString()} className="flex flex-col gap-5">
 
-            {/* Habit label row */}
-            <div className="flex items-baseline justify-between">
-              <div>
-                <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
-                  {HABIT_LABELS[habit.type as HabitType]}
-                </p>
-                {relapseCount > 0 ? (
-                  <p className="font-mono text-xs text-[var(--color-border)] mt-0.5">
-                    {relapseCount} {relapseCount === 1 ? "Rückfall" : "Rückfälle"} · aktueller Streak seit{" "}
-                    {currentStreakSince.toLocaleDateString("de-DE", {
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </p>
-                ) : (
-                  <p className="font-mono text-xs text-[var(--color-border)] mt-0.5">
-                    Clean seit{" "}
-                    {new Date(habit.startDate).toLocaleDateString("de-DE", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                )}
-              </div>
-            </div>
+            {/* Habit label row — only when multiple habits */}
+            {habits.length > 1 && (
+              <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+                {HABIT_LABELS[habit.type as HabitType]}
+              </p>
+            )}
 
             {/* Two-column: streak card | recovery preview */}
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-5 items-stretch">
@@ -176,6 +162,11 @@ export default async function DashboardPage() {
                       </p>
                       <p className="font-mono text-xs text-[var(--color-border)] mt-2">
                         + {remainderHours}h {remainderMins}min
+                      </p>
+                      <p className="font-mono text-xs text-[var(--color-border)] mt-1">
+                        {relapseCount > 0
+                          ? `${relapseCount} ${relapseCount === 1 ? "Rückfall" : "Rückfälle"} · seit ${currentStreakSince.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`
+                          : `Clean seit ${new Date(habit.startDate).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`}
                       </p>
                     </div>
                   ) : (
