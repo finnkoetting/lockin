@@ -2,6 +2,9 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { Habit } from "@/models/Habit";
+import { HABIT_LABELS } from "@/lib/habit-types";
+import { computeStreak, getMilestones } from "@/lib/streak";
+import { SignOutButton } from "./sign-out-button";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -11,17 +14,120 @@ export default async function DashboardPage() {
   const habit = await Habit.findOne({ userId: session.user.id }).lean();
   if (!habit) redirect("/onboarding");
 
+  const streak = computeStreak(habit as never);
+  const milestones = streak ? getMilestones(streak) : [];
+  const nextMilestone = milestones.find((m) => !m.reached);
+  const reachedMilestones = milestones.filter((m) => m.reached);
+
   return (
-    <main className="flex flex-1 items-center justify-center px-4 py-16">
-      <div className="w-full max-w-sm">
-        <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-2">
-          Eingeloggt als
-        </p>
-        <p className="font-mono text-lg">{session.user?.name}</p>
-        <p className="font-mono text-xs text-[var(--color-muted)] mt-1">{session.user?.email}</p>
-        <p className="mt-8 font-mono text-xs text-[var(--color-muted)]">
-          Dashboard — Streak kommt als nächstes.
-        </p>
+    <main className="flex flex-1 justify-center px-4 py-12">
+      <div className="w-full max-w-sm flex flex-col gap-10">
+
+        {/* Header */}
+        <div className="flex items-baseline justify-between">
+          <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+            LockIn
+          </p>
+          <SignOutButton />
+        </div>
+
+        {/* Habit type */}
+        <div>
+          <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-1">
+            {HABIT_LABELS[habit.type as keyof typeof HABIT_LABELS]}
+          </p>
+          <p className="font-mono text-xs text-[var(--color-muted)]">
+            Seit {new Date(habit.startDate).toLocaleDateString("de-DE", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        </div>
+
+        {/* Main streak number */}
+        <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-8">
+          <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-3">
+            Aktueller Streak
+          </p>
+          {streak && streak.currentStreakDays >= 1 ? (
+            <p className="font-mono text-6xl font-medium text-[var(--color-fg)] leading-none">
+              {streak.currentStreakDays}
+              <span className="text-2xl text-[var(--color-muted)] ml-2">Tage</span>
+            </p>
+          ) : streak ? (
+            <p className="font-mono text-4xl font-medium text-[var(--color-fg)] leading-none">
+              {streak.currentStreakHours}
+              <span className="text-xl text-[var(--color-muted)] ml-2">Stunden</span>
+            </p>
+          ) : null}
+
+          {/* Stats row */}
+          <div className="flex gap-6 mt-6 pt-6 border-t border-[var(--color-border)]">
+            {streak && streak.totalCleanDays > 0 && streak.totalCleanDays !== streak.currentStreakDays && (
+              <div>
+                <p className="font-mono text-xs text-[var(--color-muted)] mb-0.5">Gesamt clean</p>
+                <p className="font-mono text-lg text-[var(--color-fg)]">
+                  {streak.totalCleanDays} <span className="text-sm text-[var(--color-muted)]">Tage</span>
+                </p>
+              </div>
+            )}
+            {streak?.savedAmount != null && streak.savedAmount > 0 && (
+              <div>
+                <p className="font-mono text-xs text-[var(--color-muted)] mb-0.5">Gespart</p>
+                <p className="font-mono text-lg text-[var(--color-accent)]">
+                  €{streak.savedAmount.toLocaleString("de-DE", { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Next milestone */}
+        {nextMilestone && (
+          <div>
+            <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-3">
+              Nächster Milestone
+            </p>
+            <div className="flex items-center justify-between bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg px-4 py-3">
+              <p className="font-mono text-sm text-[var(--color-fg)]">{nextMilestone.label}</p>
+              <p className="font-mono text-xs text-[var(--color-muted)]">
+                noch {nextMilestone.daysUntil} {nextMilestone.daysUntil === 1 ? "Tag" : "Tage"}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Reached milestones */}
+        {reachedMilestones.length > 0 && (
+          <div>
+            <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-3">
+              Erreicht
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {reachedMilestones.map((m) => (
+                <span
+                  key={m.days}
+                  className="font-mono text-xs px-2.5 py-1 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)]"
+                >
+                  {m.label}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Relapse info */}
+        {streak?.lastRelapseDate && (
+          <p className="font-mono text-xs text-[var(--color-muted)]">
+            Letzter Rückfall:{" "}
+            {streak.lastRelapseDate.toLocaleDateString("de-DE", {
+              day: "numeric",
+              month: "long",
+            })}
+          </p>
+        )}
+
       </div>
     </main>
   );
