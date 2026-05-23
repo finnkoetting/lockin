@@ -177,6 +177,11 @@ export default async function DashboardPage() {
                         <span className="text-3xl font-medium ml-3">{remainderMins}</span>
                         <span className="text-xl text-[var(--color-muted)] ml-2">min</span>
                       </p>
+                      <p className="font-mono text-xs text-[var(--color-border)] mt-2">
+                        {relapseCount > 0
+                          ? `${relapseCount} ${relapseCount === 1 ? "Rückfall" : "Rückfälle"} · seit ${currentStreakSince.toLocaleDateString("de-DE", { day: "numeric", month: "short" })}`
+                          : `Clean seit ${new Date(habit.startDate).toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`}
+                      </p>
                     </div>
                   )}
                 </div>
