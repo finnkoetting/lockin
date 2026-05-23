@@ -9,6 +9,8 @@ import { WelcomeScreen } from "@/components/welcome-screen";
 import { RecoveryPath } from "@/components/recovery-path";
 import { RelapseButton } from "@/components/relapse-button";
 import { SavingsTicker } from "@/components/savings-ticker";
+import { StatsModal } from "@/components/stats-modal";
+import { HABIT_META } from "@/lib/habit-types";
 import type { HabitType } from "@/lib/habit-types";
 import Link from "next/link";
 
@@ -70,12 +72,18 @@ export default async function DashboardPage() {
           streak ? streak.currentStreakMinutes - streak.currentStreakHours * 60 : 0;
         const relapseCount = habit.relapses?.length ?? 0;
 
-        // Savings — precise using minutes
+        // Savings + units — precise using minutes
+        const isPorn = habit.type === "porn";
+        const dailyAmountNorm = habit.dailyAmount != null
+          ? (isPorn ? habit.dailyAmount / 7 : habit.dailyAmount)
+          : 0;
         const dailySavings = (habit.costPerUnit ?? 0) > 0
-          ? (habit.dailyAmount ?? 1) * habit.costPerUnit!
+          ? (dailyAmountNorm > 0 ? dailyAmountNorm : 1) * habit.costPerUnit!
           : 0;
         const preciseStreakDays = (streak?.currentStreakMinutes ?? 0) / (60 * 24);
         const preciseSaved = dailySavings * preciseStreakDays;
+        const totalAvoided = dailyAmountNorm * preciseStreakDays;
+        const meta = HABIT_META[habit.type as HabitType];
 
         // Progress toward next milestone (0–1)
         const milestoneProgress =
@@ -181,16 +189,30 @@ export default async function DashboardPage() {
                 {streak && (
                   <div className="flex flex-col gap-5 pt-5 border-t border-[var(--color-border)]">
 
-                    {/* Savings ticker */}
-                    {dailySavings > 0 && (
-                      <div className="flex flex-col gap-1">
+                    {/* Units avoided + savings + modal */}
+                    {(dailyAmountNorm > 0 || dailySavings > 0) && (
+                      <div className="flex flex-col gap-2">
                         <div className="flex items-center justify-between">
-                          <p className="font-mono text-xs text-[var(--color-muted)]">Gespart</p>
-                          <Link href="/savings" className="font-mono text-xs text-[var(--color-border)] hover:text-[var(--color-muted)] transition-colors">
-                            Details →
-                          </Link>
+                          <p className="font-mono text-xs text-[var(--color-muted)]">Nicht konsumiert</p>
+                          <StatsModal
+                            habitType={habit.type as HabitType}
+                            dailyAmount={dailyAmountNorm}
+                            dailySavings={dailySavings}
+                            totalAvoided={totalAvoided}
+                            totalSaved={preciseSaved}
+                          />
                         </div>
-                        <SavingsTicker initialAmount={preciseSaved} dailySavings={dailySavings} compact />
+                        {dailyAmountNorm > 0 && (
+                          <p className="font-sans text-sm text-[var(--color-fg)]">
+                            {meta.amountUnit === "g"
+                              ? `${(Math.round(totalAvoided * 10) / 10).toLocaleString("de-DE")}g`
+                              : `${Math.round(totalAvoided).toLocaleString("de-DE")} ${meta.amountUnit}`}{" "}
+                            <span className="text-[var(--color-muted)]">{meta.amountVerb}</span>
+                          </p>
+                        )}
+                        {dailySavings > 0 && (
+                          <SavingsTicker initialAmount={preciseSaved} dailySavings={dailySavings} compact />
+                        )}
                       </div>
                     )}
 
