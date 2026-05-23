@@ -32,6 +32,9 @@ export function computeStreak(habit: IHabit | null): StreakData | null {
   const now = new Date();
   const startDate = new Date(habit.startDate);
 
+  // Grace period: streak hasn't started yet
+  if (startDate > now) return null;
+
   // Sort relapses by date
   const relapses = [...(habit.relapses ?? [])].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()

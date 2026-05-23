@@ -54,22 +54,39 @@ export default async function DashboardPage() {
                 <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-3">
                   Aktueller Streak
                 </p>
-                {streak && streak.currentStreakDays >= 1 ? (
+                {!streak ? (
+                  /* Grace period — streak starts in the future */
+                  (() => {
+                    const hoursLeft = Math.ceil(
+                      (new Date(habit.startDate).getTime() - Date.now()) / (1000 * 60 * 60)
+                    );
+                    return (
+                      <div>
+                        <p className="font-mono text-4xl font-medium text-[var(--color-fg)] leading-none">
+                          {hoursLeft}
+                          <span className="text-xl text-[var(--color-muted)] ml-2">h</span>
+                        </p>
+                        <p className="font-sans text-xs text-[var(--color-muted)] mt-3 leading-relaxed">
+                          Dein letztes Mal. In {hoursLeft} Stunde{hoursLeft !== 1 ? "n" : ""} beginnt der Streak.
+                        </p>
+                      </div>
+                    );
+                  })()
+                ) : streak.currentStreakDays >= 1 ? (
                   <p className="font-mono text-6xl font-medium text-[var(--color-fg)] leading-none">
                     {streak.currentStreakDays}
                     <span className="text-2xl text-[var(--color-muted)] ml-2">Tage</span>
                   </p>
-                ) : streak ? (
+                ) : (
                   <p className="font-mono text-4xl font-medium text-[var(--color-fg)] leading-none">
                     {streak.currentStreakHours}
                     <span className="text-xl text-[var(--color-muted)] ml-2">Stunden</span>
                   </p>
-                ) : null}
+                )}
 
                 {/* Stats row */}
-                <div className="flex gap-6 mt-6 pt-6 border-t border-[var(--color-border)]">
-                  {streak &&
-                    streak.totalCleanDays > 0 &&
+                {streak && <div className="flex gap-6 mt-6 pt-6 border-t border-[var(--color-border)]">
+                  {streak.totalCleanDays > 0 &&
                     streak.totalCleanDays !== streak.currentStreakDays && (
                       <div>
                         <p className="font-mono text-xs text-[var(--color-muted)] mb-0.5">
@@ -92,7 +109,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                   )}
-                </div>
+                </div>}
               </div>
 
               {/* Next milestone */}

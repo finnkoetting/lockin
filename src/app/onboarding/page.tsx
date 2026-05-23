@@ -22,9 +22,14 @@ export default function OnboardingPage() {
   // Selected theses (multi) + optional custom text, per habit type
   const [selectedTheses, setSelectedTheses] = useState<Partial<Record<HabitType, string[]>>>({});
   const [customWhys, setCustomWhys] = useState<Partial<Record<HabitType, string>>>({});
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  // "past" = already quit (pick datetime), "grace" = quit now + 24h grace period
+  const [startMode, setStartMode] = useState<"past" | "grace">("past");
+  const [startDatetime, setStartDatetime] = useState(() => {
+    // Default: now, formatted for datetime-local input
+    const now = new Date();
+    now.setSeconds(0, 0);
+    return now.toISOString().slice(0, 16);
+  });
   const [costs, setCosts] = useState<Partial<Record<HabitType, string>>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,10 +108,15 @@ export default function OnboardingPage() {
       costPerUnit: costs[type] ? Number(costs[type]) : undefined,
     }));
 
+    const resolvedStart =
+      startMode === "grace"
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        : new Date(startDatetime).toISOString();
+
     const res = await fetch("/api/habits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ startDate, habits }),
+      body: JSON.stringify({ startDate: resolvedStart, habits }),
     });
 
     const data = await res.json();
@@ -255,26 +265,72 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* ── Step 3: Datum + Kosten ── */}
+        {/* ── Step 3: Start-Modus + Kosten ── */}
         {step === "start" && (
           <div>
             <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-6">
-              Wann hast du aufgehört?
+              Wann hörst du auf?
             </p>
 
+            <div className="flex flex-col gap-3 mb-6">
+              {/* Option 1: already quit */}
+              <button
+                onClick={() => setStartMode("past")}
+                className={`text-left px-4 py-4 rounded border transition-colors ${
+                  startMode === "past"
+                    ? "border-[var(--color-fg)] bg-[var(--color-surface)]"
+                    : "border-[var(--color-border)] hover:border-[var(--color-muted)]"
+                }`}
+              >
+                <p className="font-mono text-sm text-[var(--color-fg)] mb-1">
+                  Ich habe bereits aufgehört
+                </p>
+                <p className="font-sans text-xs text-[var(--color-muted)]">
+                  Datum und Uhrzeit festlegen
+                </p>
+              </button>
+
+              {/* Option 2: grace period */}
+              <button
+                onClick={() => setStartMode("grace")}
+                className={`text-left px-4 py-4 rounded border transition-colors ${
+                  startMode === "grace"
+                    ? "border-[var(--color-fg)] bg-[var(--color-surface)]"
+                    : "border-[var(--color-border)] hover:border-[var(--color-muted)]"
+                }`}
+              >
+                <p className="font-mono text-sm text-[var(--color-fg)] mb-1">
+                  Ich will aufhören
+                </p>
+                <p className="font-sans text-xs text-[var(--color-muted)]">
+                  Du hast 24 Stunden — dein letztes Mal. Danach beginnt der Streak.
+                </p>
+              </button>
+            </div>
+
             <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <label className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
-                  Datum
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  max={new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-3 py-2.5 text-sm font-mono outline-none focus:border-[var(--color-fg)] transition-colors"
-                />
-              </div>
+              {/* Datetime picker — only for "past" mode */}
+              {startMode === "past" && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+                    Datum &amp; Uhrzeit
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={startDatetime}
+                    max={new Date().toISOString().slice(0, 16)}
+                    onChange={(e) => setStartDatetime(e.target.value)}
+                    className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded px-3 py-2.5 text-sm font-mono outline-none focus:border-[var(--color-fg)] transition-colors"
+                  />
+                </div>
+              )}
+
+              {/* Grace period info */}
+              {startMode === "grace" && (
+                <p className="font-sans text-xs text-[var(--color-muted)] leading-relaxed border-l-2 border-[var(--color-accent)] pl-3">
+                  Dein Streak startet in 24 Stunden. Nutze die Zeit bewusst — nicht als Ausrede.
+                </p>
+              )}
 
               {costsWithLabel.length > 0 && (
                 <div className="flex flex-col gap-4">
@@ -326,7 +382,7 @@ export default function OnboardingPage() {
                 Zurück
               </button>
               <button
-                disabled={loading || !startDate}
+                disabled={loading || (startMode === "past" && !startDatetime)}
                 onClick={submit}
                 className="flex-1 bg-[var(--color-fg)] text-[var(--color-bg)] font-mono text-sm py-2.5 rounded hover:opacity-90 transition-opacity disabled:opacity-30"
               >
