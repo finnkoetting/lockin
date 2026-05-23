@@ -14,6 +14,7 @@ export interface IHabit extends Document {
   startDate: Date;
   why: string;
   costPerUnit?: number;
+  dailyAmount?: number;
   relapses: IRelapse[];
 }
 
@@ -24,6 +25,7 @@ const HabitSchema = new Schema<IHabit>(
     startDate: { type: Date, required: true },
     why: { type: String, required: true },
     costPerUnit: { type: Number },
+    dailyAmount: { type: Number },
     relapses: [
       {
         date: { type: Date, required: true },

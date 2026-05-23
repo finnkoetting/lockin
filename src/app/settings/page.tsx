@@ -16,6 +16,7 @@ export default async function SettingsPage() {
     type: h.type,
     startDate: h.startDate.toISOString(),
     costPerUnit: h.costPerUnit,
+    dailyAmount: h.dailyAmount,
   }));
 
   return (

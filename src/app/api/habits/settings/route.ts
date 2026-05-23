@@ -7,13 +7,16 @@ export async function PATCH(req: Request) {
   const userId = await requireUser();
   await connectDB();
 
-  const { type, startDate, costPerUnit } = await req.json();
+  const { type, startDate, costPerUnit, dailyAmount } = await req.json();
   if (!type) return NextResponse.json({ error: "type required" }, { status: 400 });
 
   const update: Record<string, unknown> = {};
   if (startDate !== undefined) update.startDate = new Date(startDate);
   if (costPerUnit !== undefined) {
     update.costPerUnit = costPerUnit === "" || costPerUnit === null ? undefined : Number(costPerUnit);
+  }
+  if (dailyAmount !== undefined) {
+    update.dailyAmount = dailyAmount === "" || dailyAmount === null ? undefined : Number(dailyAmount);
   }
 
   if (Object.keys(update).length === 0)

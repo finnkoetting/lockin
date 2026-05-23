@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { HABIT_LABELS, type HabitType } from "@/lib/habit-types";
+import { HABIT_LABELS, HABIT_META, type HabitType } from "@/lib/habit-types";
 
 interface HabitData {
   type: string;
   startDate: string; // ISO string
   costPerUnit?: number;
+  dailyAmount?: number;
 }
 
 interface Props {
@@ -26,13 +27,14 @@ export function SettingsForm({ habits }: Props) {
   const router = useRouter();
 
   // Per-habit form state
-  const [habitStates, setHabitStates] = useState<Record<string, { startDate: string; costPerUnit: string; saving: boolean; saved: boolean }>>(() =>
+  const [habitStates, setHabitStates] = useState<Record<string, { startDate: string; costPerUnit: string; dailyAmount: string; saving: boolean; saved: boolean }>>(() =>
     Object.fromEntries(
       habits.map((h) => [
         h.type,
         {
           startDate: toDatetimeLocal(h.startDate),
           costPerUnit: h.costPerUnit != null ? String(h.costPerUnit) : "",
+          dailyAmount: h.dailyAmount != null ? String(h.dailyAmount) : "",
           saving: false,
           saved: false,
         },
@@ -61,6 +63,7 @@ export function SettingsForm({ habits }: Props) {
         type,
         startDate: new Date(s.startDate).toISOString(),
         costPerUnit: s.costPerUnit === "" ? null : s.costPerUnit,
+        dailyAmount: s.dailyAmount === "" ? null : s.dailyAmount,
       }),
     });
     setHabitStates((prev) => ({ ...prev, [type]: { ...prev[type], saving: false, saved: true } }));
@@ -79,6 +82,7 @@ export function SettingsForm({ habits }: Props) {
       {/* Per-habit settings */}
       {habits.map((habit) => {
         const s = habitStates[habit.type];
+        const meta = HABIT_META[habit.type as HabitType];
         return (
           <div key={habit.type} className="flex flex-col gap-6">
             <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
@@ -100,24 +104,45 @@ export function SettingsForm({ habits }: Props) {
                 />
               </div>
 
-              {/* Cost per unit */}
+              {/* Daily amount — habit-specific */}
               <div className="flex flex-col gap-2">
                 <label className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
-                  Kosten pro Einheit (€)
+                  {meta.amountLabel}
                 </label>
                 <input
                   type="number"
                   min="0"
-                  step="0.01"
-                  placeholder="z. B. 0.40 pro Zigarette"
-                  value={s.costPerUnit}
-                  onChange={(e) => update(habit.type, "costPerUnit", e.target.value)}
+                  step="0.1"
+                  placeholder={meta.amountHint}
+                  value={s.dailyAmount}
+                  onChange={(e) => update(habit.type, "dailyAmount", e.target.value)}
                   className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-4 py-3 font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-border)] focus:outline-none focus:border-[var(--color-muted)]"
                 />
                 <p className="font-sans text-xs text-[var(--color-border)]">
-                  Wird für die Ersparnis-Berechnung genutzt.
+                  Für die Statistik: wie viele {meta.amountUnit} du {meta.amountVerb} hast.
                 </p>
               </div>
+
+              {/* Cost per day — only for habits that have monetary cost */}
+              {meta.costLabel && (
+                <div className="flex flex-col gap-2">
+                  <label className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+                    {meta.costLabel}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder={meta.costHint}
+                    value={s.costPerUnit}
+                    onChange={(e) => update(habit.type, "costPerUnit", e.target.value)}
+                    className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-4 py-3 font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-border)] focus:outline-none focus:border-[var(--color-muted)]"
+                  />
+                  <p className="font-sans text-xs text-[var(--color-border)]">
+                    Für die Ersparnis-Berechnung.
+                  </p>
+                </div>
+              )}
 
               <button
                 onClick={() => saveHabit(habit.type)}
