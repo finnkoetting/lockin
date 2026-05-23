@@ -85,6 +85,11 @@ export default async function DashboardPage() {
         const totalAvoided = dailyAmountNorm * preciseStreakDays;
         const meta = HABIT_META[habit.type as HabitType];
 
+        // Lebenszeit
+        const lifeMinutesTotal = meta.lifeMinutesPerUnit && dailyAmountNorm > 0
+          ? totalAvoided * meta.lifeMinutesPerUnit
+          : 0;
+
         // Progress toward next milestone (0–1)
         const milestoneProgress =
           nextMilestone && streak
@@ -130,7 +135,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Two-column: streak card | recovery preview */}
-            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-5 items-start">
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] gap-5 items-stretch">
               <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-6">
 
                 {/* Streak number */}
@@ -185,7 +190,7 @@ export default async function DashboardPage() {
                   )}
                 </div>
 
-                {/* Stats + milestones */}
+                {/* Stats */}
                 {streak && (
                   <div className="flex flex-col gap-5 pt-5 border-t border-[var(--color-border)]">
 
@@ -216,44 +221,6 @@ export default async function DashboardPage() {
                       </div>
                     )}
 
-                    {/* Next milestone with progress bar + smart unit */}
-                    {nextMilestone && (() => {
-                      const hoursUntil = nextMilestone.days * 24 - streak.currentStreakHours;
-                      const label = hoursUntil <= 23
-                        ? `noch ${hoursUntil}h`
-                        : `noch ${nextMilestone.daysUntil} ${nextMilestone.daysUntil === 1 ? "Tag" : "Tage"}`;
-                      return (
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center justify-between">
-                            <p className="font-mono text-sm text-[var(--color-fg)]">
-                              {nextMilestone.label}
-                            </p>
-                            <p className="font-mono text-xs text-[var(--color-muted)]">{label}</p>
-                          </div>
-                          <div className="h-px w-full bg-[var(--color-border)]">
-                            <div
-                              className="h-full bg-[var(--color-accent)] transition-all duration-700"
-                              style={{ width: `${milestoneProgress * 100}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Reached milestone badges */}
-                    {reachedMilestones.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {reachedMilestones.map((m) => (
-                          <span
-                            key={m.days}
-                            className="font-mono text-xs px-2.5 py-1 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)]"
-                          >
-                            {m.label}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
                     {/* Relapse button at natural bottom of card */}
                     <div className="pt-1">
                       <RelapseButton habitType={habit.type as HabitType} />
@@ -270,7 +237,7 @@ export default async function DashboardPage() {
               </div>
 
               {/* Right: recovery path preview */}
-              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6">
+              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col">
                 <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest mb-5">
                   Dein Weg
                 </p>
@@ -282,6 +249,113 @@ export default async function DashboardPage() {
               </div>
 
             </div>
+
+            {/* Lebenszeit Card */}
+            {streak && lifeMinutesTotal >= 1 && (() => {
+              const totalMins = Math.floor(lifeMinutesTotal);
+              const days = Math.floor(totalMins / 1440);
+              const hours = Math.floor((totalMins % 1440) / 60);
+              const mins = totalMins % 60;
+              let primary = "";
+              let secondary = "";
+              if (days >= 1) {
+                primary = `${days} ${days === 1 ? "Tag" : "Tage"}`;
+                secondary = hours > 0 ? `+ ${hours}h ${mins}min` : "";
+              } else if (hours >= 1) {
+                primary = `${hours}h`;
+                secondary = mins > 0 ? `${mins}min` : "";
+              } else {
+                primary = `${totalMins}`;
+                secondary = "Minuten";
+              }
+              return (
+                <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-2">
+                  <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+                    Lebenszeit zurückgewonnen
+                  </p>
+                  <div className="flex items-baseline gap-3">
+                    <p className="font-mono text-5xl font-medium text-[var(--color-accent)] leading-none">
+                      {primary}
+                    </p>
+                    {secondary && (
+                      <p className="font-mono text-lg text-[var(--color-muted)]">
+                        {secondary}
+                      </p>
+                    )}
+                  </div>
+                  {meta.lifeNote && (
+                    <p className="font-sans text-xs text-[var(--color-border)] mt-1">
+                      {meta.lifeNote}
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Milestones card */}
+            {streak && milestones.length > 0 && (
+              <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-5">
+                <p className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
+                  Meilensteine
+                </p>
+
+                {/* Reached badges */}
+                {reachedMilestones.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {reachedMilestones.map((m) => (
+                      <span
+                        key={m.days}
+                        className="font-mono text-xs px-3 py-1.5 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)]"
+                      >
+                        ✓ {m.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Next milestone with progress bar */}
+                {nextMilestone && (() => {
+                  const hoursUntil = nextMilestone.days * 24 - streak.currentStreakHours;
+                  const label = hoursUntil <= 23
+                    ? `noch ${hoursUntil}h`
+                    : `noch ${nextMilestone.daysUntil} ${nextMilestone.daysUntil === 1 ? "Tag" : "Tage"}`;
+                  return (
+                    <div className="flex flex-col gap-3">
+                      {reachedMilestones.length > 0 && (
+                        <div className="h-px w-full bg-[var(--color-border)]" />
+                      )}
+                      <div className="flex items-center justify-between">
+                        <p className="font-mono text-sm text-[var(--color-fg)]">
+                          {nextMilestone.label}
+                        </p>
+                        <p className="font-mono text-xs text-[var(--color-muted)]">{label}</p>
+                      </div>
+                      <div className="h-1 w-full bg-[var(--color-border)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--color-accent)] transition-all duration-700 rounded-full"
+                          style={{ width: `${milestoneProgress * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Upcoming milestones */}
+                {milestones.filter((m) => !m.reached && m !== nextMilestone).slice(0, 3).length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {milestones.filter((m) => !m.reached && m !== nextMilestone).slice(0, 3).map((m) => (
+                      <span
+                        key={m.days}
+                        className="font-mono text-xs px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-border)]"
+                      >
+                        {m.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
         );
       })}

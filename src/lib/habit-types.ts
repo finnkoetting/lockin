@@ -33,6 +33,15 @@ export interface HabitMeta {
   amountHint: string;
   /** Verb for the avoided-stat: "nicht geraucht", "zurückgewonnen" etc. */
   amountVerb: string;
+  /**
+   * Minutes of life gained per avoided unit.
+   * smoking: ~11 min/cigarette (research estimate)
+   * doomscrolling/gaming: 60 min/hour (1:1 time reclaimed)
+   * undefined = no life-time stat shown
+   */
+  lifeMinutesPerUnit?: number;
+  /** Label shown below the life-time number */
+  lifeNote?: string;
 }
 
 export interface TimelineEvent {
@@ -270,6 +279,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
     amountUnit: "Zigaretten",
     amountHint: "z.B. 10",
     amountVerb: "nicht geraucht",
+    lifeMinutesPerUnit: 11,
+    lifeNote: "ca. 11 Minuten Lebenserwartung pro Zigarette (Forschungsschätzung)",
   },
   weed: {
     whyPrompt:
@@ -298,6 +309,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
     amountUnit: "Stunden",
     amountHint: "z.B. 3",
     amountVerb: "zurückgewonnen",
+    lifeMinutesPerUnit: 60,
+    lifeNote: "echte Stunden deines Lebens zurückgewonnen",
   },
   gaming: {
     whyPrompt:
@@ -308,6 +321,8 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
     amountUnit: "Stunden",
     amountHint: "z.B. 4",
     amountVerb: "nicht gezockt",
+    lifeMinutesPerUnit: 60,
+    lifeNote: "echte Stunden deines Lebens zurückgewonnen",
   },
   porn: {
     whyPrompt:
