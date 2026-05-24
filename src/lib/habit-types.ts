@@ -33,6 +33,8 @@ export interface HabitMeta {
   amountHint: string;
   /** Verb for the avoided-stat: "nicht geraucht", "zurückgewonnen" etc. */
   amountVerb: string;
+  /** Question shown in onboarding statistik step */
+  statsPrompt: string;
   /**
    * Minutes of life gained per avoided unit.
    * smoking: ~11 min/cigarette (research estimate)
@@ -273,6 +275,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   smoking: {
     whyPrompt:
       "Was kostet dich das Rauchen — körperlich, im Kopf, im Geldbeutel? Was wird konkret besser, wenn du aufhörst?",
+    statsPrompt: "Wie viel hast du geraucht?",
     costLabel: "Preis pro Zigarette (€)",
     costHint: "z.B. 0.40",
     amountLabel: "Zigaretten pro Tag",
@@ -285,6 +288,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   weed: {
     whyPrompt:
       "Wann greifst du zum Joint — aus Gewohnheit, Stress, Langeweile? Was betäubst du damit, und was willst du stattdessen spüren?",
+    statsPrompt: "Wie viel hast du gekifft?",
     costLabel: "Preis pro Gramm (€)",
     costHint: "z.B. 10.00",
     amountLabel: "Gramm pro Tag",
@@ -295,6 +299,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   alcohol: {
     whyPrompt:
       "Wann trinkst du, obwohl ein Teil von dir es nicht will? Was gibst du auf — körperlich, sozial, mental — solange du trinkst?",
+    statsPrompt: "Wie viel hast du getrunken?",
     costLabel: "Preis pro Drink (€)",
     costHint: "z.B. 4.00",
     amountLabel: "Drinks pro Tag",
@@ -305,6 +310,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   doomscrolling: {
     whyPrompt:
       "Was machst du, während du scrollst, anstatt zu leben? Was hast du in letzter Zeit wegen dem Handy nicht gemacht?",
+    statsPrompt: "Wie viel Zeit hast du verschwendet?",
     amountLabel: "Stunden Scrollen pro Tag",
     amountUnit: "Stunden",
     amountHint: "z.B. 3",
@@ -315,8 +321,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   gaming: {
     whyPrompt:
       "Wann hört Gaming auf, Spaß zu sein, und wird Flucht? Was läuft im echten Leben gerade schief, das du damit übertönst?",
-    costLabel: "Tageskosten Gaming (€)",
-    costHint: "z.B. 3.00",
+    statsPrompt: "Wie viel hast du gezockt?",
     amountLabel: "Stunden Zocken pro Tag",
     amountUnit: "Stunden",
     amountHint: "z.B. 4",
@@ -327,6 +332,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   porn: {
     whyPrompt:
       "Wie beeinflusst das deine echten Beziehungen und dein Selbstbild? Was willst du in deinem Liebesleben wirklich — und was fehlt gerade?",
+    statsPrompt: "Wie oft hast du geschaut?",
     amountLabel: "Mal pro Woche",
     amountUnit: "Mal",
     amountHint: "z.B. 5",
@@ -335,6 +341,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   junk_food: {
     whyPrompt:
       "Wann greifst du zu Junk Food — Hunger, Stress, Boredom, Belohnung? Was isst du stattdessen, und wie willst du dich nach dem Essen fühlen?",
+    statsPrompt: "Wie viel Junk Food hast du gegessen?",
     costLabel: "Preis pro Mahlzeit (€)",
     costHint: "z.B. 8.00",
     amountLabel: "Mahlzeiten pro Tag",
@@ -345,6 +352,7 @@ export const HABIT_META: Record<HabitType, HabitMeta> = {
   shopping: {
     whyPrompt:
       "Was kaufst du, das du wirklich nicht brauchst? Was kaufst du eigentlich — ein Gefühl, eine Ablenkung, Kontrolle? Was bleibt nach dem Kauf?",
+    statsPrompt: "Wie viel hast du gekauft?",
     costLabel: "Ø Preis pro Kauf (€)",
     costHint: "z.B. 30.00",
     amountLabel: "Käufe pro Tag",

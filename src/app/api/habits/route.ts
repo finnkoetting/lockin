@@ -8,6 +8,7 @@ interface HabitInput {
   type: string;
   why: string;
   costPerUnit?: number;
+  dailyAmount?: number;
 }
 
 export async function POST(req: NextRequest) {
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
             startDate: parsedDate,
             why: h.why.trim(),
             costPerUnit: h.costPerUnit ?? undefined,
+            dailyAmount: h.dailyAmount ?? undefined,
           },
           $setOnInsert: { relapses: [] },
         },

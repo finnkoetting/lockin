@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { HABIT_LABELS, HABIT_META, type HabitType } from "@/lib/habit-types";
+import { CigarettePicker } from "@/components/cigarette-picker";
+
+function limitDecimals(value: string, places: number): string {
+  const dot = value.indexOf(".");
+  if (dot === -1) return value;
+  return value.slice(0, dot + 1 + places);
+}
 
 interface HabitData {
   type: string;
@@ -126,7 +133,7 @@ export function SettingsForm({ habits }: Props) {
                   step="0.1"
                   placeholder={meta.amountHint}
                   value={s.dailyAmount}
-                  onChange={(e) => update(habit.type, "dailyAmount", e.target.value)}
+                  onChange={(e) => update(habit.type, "dailyAmount", limitDecimals(e.target.value, 1))}
                   className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-4 py-3 font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-border)] focus:outline-none focus:border-[var(--color-muted)]"
                 />
                 <p className="font-sans text-xs text-[var(--color-border)]">
@@ -140,15 +147,22 @@ export function SettingsForm({ habits }: Props) {
                   <label className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-widest">
                     {meta.costLabel}
                   </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder={meta.costHint}
-                    value={s.costPerUnit}
-                    onChange={(e) => update(habit.type, "costPerUnit", e.target.value)}
-                    className="w-full bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-4 py-3 font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-border)] focus:outline-none focus:border-[var(--color-muted)]"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder={meta.costHint}
+                      value={s.costPerUnit}
+                      onChange={(e) => update(habit.type, "costPerUnit", limitDecimals(e.target.value, 2))}
+                      className="flex-1 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg px-4 py-3 font-mono text-sm text-[var(--color-fg)] placeholder:text-[var(--color-border)] focus:outline-none focus:border-[var(--color-muted)]"
+                    />
+                    {habit.type === "smoking" && (
+                      <CigarettePicker
+                        onSelect={(price) => update(habit.type, "costPerUnit", String(price))}
+                      />
+                    )}
+                  </div>
                   <p className="font-sans text-xs text-[var(--color-border)]">
                     Für die Ersparnis-Berechnung.
                   </p>
